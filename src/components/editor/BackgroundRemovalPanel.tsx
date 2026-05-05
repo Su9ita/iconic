@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Robot, Cloud, X, Spinner, WarningCircle, Eyedropper, Hand } from "@phosphor-icons/react";
+import { Robot, X, Spinner, WarningCircle, Eyedropper, Hand } from "@phosphor-icons/react";
 import { useEditorStore } from "@/stores/editorStore";
 import {
   removeBackgroundAI,
-  removeBackgroundAPI,
   blobToObjectUrl,
 } from "@/lib/backgroundRemoval";
 import { removeColorFromImageAsync, rgbToHex } from "@/lib/colorRemoval";
@@ -17,14 +16,12 @@ export function BackgroundRemovalPanel() {
   const {
     sourceImage,
     bgRemovalMethod,
-    removeBgApiKey,
     isProcessing,
     processingProgress,
     processingMessage,
     selectedColor,
     colorTolerance,
     setBgRemovalMethod,
-    setRemoveBgApiKey,
     setIsProcessing,
     setProcessingProgress,
     setProcessedImageUrl,
@@ -48,17 +45,6 @@ export function BackgroundRemovalPanel() {
         blob = await removeBackgroundAI(sourceImage, ({ progress, message }) => {
           setProcessingProgress(progress, message);
         });
-      } else if (bgRemovalMethod === "api") {
-        if (!removeBgApiKey) {
-          throw new Error("APIキーを入力してください");
-        }
-        blob = await removeBackgroundAPI(
-          sourceImage,
-          removeBgApiKey,
-          ({ progress, message }) => {
-            setProcessingProgress(progress, message);
-          }
-        );
       } else if (bgRemovalMethod === "color") {
         if (!selectedColor) {
           throw new Error("スポイトで背景色を選択してください");
@@ -116,7 +102,6 @@ export function BackgroundRemovalPanel() {
   }, [
     sourceImage,
     bgRemovalMethod,
-    removeBgApiKey,
     selectedColor,
     colorTolerance,
     setIsProcessing,
@@ -125,11 +110,6 @@ export function BackgroundRemovalPanel() {
     initializeLayers,
     setIsManualMode,
   ]);
-
-  const handleSaveApiKey = useCallback(() => {
-    setRemoveBgApiKey(apiKeyInput);
-    setApiKeyInput("");
-  }, [apiKeyInput, setRemoveBgApiKey]);
 
   const handleStartEyedropper = useCallback(() => {
     setBgRemovalMethod("color");
@@ -157,17 +137,7 @@ export function BackgroundRemovalPanel() {
           disabled={isProcessing}
         >
           <Robot size={18} className="mr-1" />
-          AI
-        </button>
-        <button
-          className={`neu-button neu-button-sm ${
-            bgRemovalMethod === "api" ? "neu-button-primary" : ""
-          }`}
-          onClick={() => setBgRemovalMethod("api")}
-          disabled={isProcessing}
-        >
-          <Cloud size={18} className="mr-1" />
-          API
+          AI自動
         </button>
         <button
           className={`neu-button neu-button-sm ${
@@ -185,20 +155,21 @@ export function BackgroundRemovalPanel() {
           }`}
           onClick={() => setBgRemovalMethod("manual")}
           disabled={isProcessing}
-          title="手動モード"
+          title="手動モード（ツールで手動切り抜き）"
         >
           <Hand size={18} className="mr-1" />
           手動
         </button>
         <button
-          className={`neu-button neu-button-sm col-span-2 ${
+          className={`neu-button neu-button-sm ${
             bgRemovalMethod === "none" ? "neu-button-primary" : ""
           }`}
           onClick={() => setBgRemovalMethod("none")}
           disabled={isProcessing}
           title="背景除去なし"
         >
-          <X size={18} />
+          <X size={18} className="mr-1" />
+          除去なし
         </button>
       </div>
 
@@ -249,39 +220,6 @@ export function BackgroundRemovalPanel() {
         </div>
       )}
 
-      {/* API キー入力 */}
-      {bgRemovalMethod === "api" && !removeBgApiKey && (
-        <div className="space-y-2">
-          <input
-            type="password"
-            value={apiKeyInput}
-            onChange={(e) => setApiKeyInput(e.target.value)}
-            placeholder="remove.bg APIキー"
-            className="neu-input text-sm"
-          />
-          <button
-            className="neu-button neu-button-sm w-full"
-            onClick={handleSaveApiKey}
-            disabled={!apiKeyInput}
-          >
-            キーを保存
-          </button>
-        </div>
-      )}
-
-      {/* APIキー設定済み表示 */}
-      {bgRemovalMethod === "api" && removeBgApiKey && (
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-[var(--neu-text-muted)]">APIキー設定済み</span>
-          <button
-            className="text-[var(--neu-danger)] hover:underline"
-            onClick={() => setRemoveBgApiKey(null)}
-          >
-            削除
-          </button>
-        </div>
-      )}
-
       {/* 実行ボタン */}
       {bgRemovalMethod !== "none" && (
         <button
@@ -289,7 +227,6 @@ export function BackgroundRemovalPanel() {
           onClick={handleRemoveBackground}
           disabled={
             isProcessing ||
-            (bgRemovalMethod === "api" && !removeBgApiKey) ||
             (bgRemovalMethod === "color" && !selectedColor)
           }
         >

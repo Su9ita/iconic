@@ -27,13 +27,11 @@ export interface CompositeOptions {
   overflowStrokes: Position[][];
   brushSize: number;
   showOriginal: boolean;
-  // 新規: レイヤーシステム
   layers: Layer[];
-  // 手動モード
   isManualMode?: boolean;
-  // クリッピング
   clipRegion?: ClipRegion;
   outputSize?: number;
+  roundness?: number;
 }
 
 /**
@@ -67,10 +65,7 @@ function getDrawParams(
   return { drawX, drawY, scaledWidth, scaledHeight };
 }
 
-/**
- * squircleマスクキャンバスを作成
- */
-function createSquircleMaskCanvas(): HTMLCanvasElement {
+function buildSquircleMask(roundness: number): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
   canvas.width = WORKSPACE_SIZE;
   canvas.height = WORKSPACE_SIZE;
@@ -81,7 +76,7 @@ function createSquircleMaskCanvas(): HTMLCanvasElement {
   ctx.save();
   ctx.translate(SQUIRCLE_OFFSET + ICON_PADDING, SQUIRCLE_OFFSET + ICON_PADDING);
   ctx.fillStyle = "#ffffff";
-  createSquirclePath(ctx, innerSize, ROUNDNESS);
+  createSquirclePath(ctx, innerSize, roundness);
   ctx.fill();
   ctx.restore();
 
@@ -106,6 +101,7 @@ export async function createFinalCanvas(
     isManualMode,
     clipRegion,
     outputSize,
+    roundness = ROUNDNESS,
   } = options;
 
   const canvas = document.createElement("canvas");
@@ -126,7 +122,7 @@ export async function createFinalCanvas(
 
     if (baseLayer && characterLayer) {
       // squircleマスク
-      const squircleMask = createSquircleMaskCanvas();
+      const squircleMask = buildSquircleMask(roundness);
 
       // === 1. ベースレイヤー（アイコン内側） ===
       if (baseLayer.visible && baseLayer.imageUrl) {

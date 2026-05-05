@@ -17,6 +17,7 @@ import {
   BackgroundRemovalPanel,
   ExportPanel,
   LayerPanel,
+  BalancePreview,
 } from "@/components/editor";
 
 const steps = [
@@ -110,6 +111,7 @@ export default function Home() {
               </div>
               <BackgroundRemovalPanel />
               <LayerPanel />
+              <BalancePreview />
               <ExportPanel />
             </aside>
           </section>

@@ -78,7 +78,7 @@ export function LayerPanel() {
       </div>
 
       <p className="text-xs text-[var(--neu-text-muted)] mt-2">
-        消しゴムで消すレイヤーを選択してください
+        編集対象のレイヤーを選択
       </p>
     </div>
   );

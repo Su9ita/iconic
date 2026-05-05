@@ -45,6 +45,7 @@ export function EditorCanvas() {
     showOriginal,
     penPoints,
     isPenPathClosed,
+    roundness,
     setImagePosition,
     addOverflowStroke,
     updateLayerEraserMask,
@@ -271,13 +272,13 @@ export function EditorCanvas() {
     // 角丸外側のオーバーレイ（余白分オフセット）
     ctx.save();
     ctx.translate(squircleX, squircleY);
-    drawSquircleOverlay(ctx, SQUIRCLE_SIZE, ROUNDNESS, "rgba(0, 0, 0, 0.3)");
+    drawSquircleOverlay(ctx, SQUIRCLE_SIZE, roundness, "rgba(0, 0, 0, 0.3)");
     ctx.restore();
 
     // 角丸枠線（余白分オフセット）
     ctx.save();
     ctx.translate(squircleX, squircleY);
-    drawSquircleOutline(ctx, SQUIRCLE_SIZE, ROUNDNESS, "rgba(99, 102, 241, 0.6)", 3);
+    drawSquircleOutline(ctx, SQUIRCLE_SIZE, roundness, "rgba(99, 102, 241, 0.6)", 3);
     ctx.restore();
 
     // ペンツールのパス描画
@@ -420,7 +421,7 @@ export function EditorCanvas() {
         }
       }
     }
-  }, [overflowStrokes, currentStroke, brushSize, activeTool, penPoints, isPenPathClosed, isPenDragging, pendingPenPoint, penDragStart]);
+  }, [overflowStrokes, currentStroke, brushSize, activeTool, penPoints, isPenPathClosed, isPenDragging, pendingPenPoint, penDragStart, roundness]);
 
   useEffect(() => {
     drawMainCanvas();

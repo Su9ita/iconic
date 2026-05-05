@@ -54,6 +54,7 @@ export function ExportModal() {
     isManualMode,
     clipRegion,
     isExportModalOpen,
+    roundness,
     setClipRegion,
     setExportModalOpen,
   } = useEditorStore();
@@ -210,9 +211,9 @@ export function ExportModal() {
 
     ctx.save();
     ctx.translate(squircleX, squircleY);
-    drawSquircleOutline(ctx, SQUIRCLE_SIZE, ROUNDNESS, "rgba(139, 92, 246, 0.4)", 2);
+    drawSquircleOutline(ctx, SQUIRCLE_SIZE, roundness, "rgba(139, 92, 246, 0.4)", 2);
     ctx.restore();
-  }, [clipRegion]);
+  }, [clipRegion, roundness]);
 
   useEffect(() => {
     drawMainCanvas();
@@ -435,6 +436,7 @@ export function ExportModal() {
           layers,
           isManualMode,
           clipRegion,
+          roundness,
         });
 
         const timestamp = Date.now();
@@ -466,6 +468,7 @@ export function ExportModal() {
       layers,
       isManualMode,
       clipRegion,
+      roundness,
     ]
   );
 

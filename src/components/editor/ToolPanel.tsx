@@ -5,12 +5,11 @@ import {
   PaintBrush,
   Eraser,
   Trash,
-  Eye,
-  EyeSlash,
   ArrowUUpLeft,
   ArrowUUpRight,
   ArrowCounterClockwise,
   Path,
+  FrameCorners,
 } from "@phosphor-icons/react";
 import { useEditorStore } from "@/stores/editorStore";
 
@@ -18,14 +17,13 @@ export function ToolPanel() {
   const {
     activeTool,
     brushSize,
-    showOriginal,
-    processedImageUrl,
     layers,
     isManualMode,
+    roundness,
     setActiveTool,
     setBrushSize,
     clearOverflowStrokes,
-    toggleShowOriginal,
+    setRoundness,
     undo,
     redo,
     canUndo,
@@ -142,25 +140,24 @@ export function ToolPanel() {
       )}
 
 
-      {/* オリジナル表示切替 */}
-      {processedImageUrl && (
-        <button
-          className={`neu-button neu-button-sm w-full ${showOriginal ? "" : "neu-button-primary"}`}
-          onClick={toggleShowOriginal}
-        >
-          {showOriginal ? (
-            <>
-              <EyeSlash size={18} className="mr-2" />
-              背景あり表示中
-            </>
-          ) : (
-            <>
-              <Eye size={18} className="mr-2" />
-              背景除去済み
-            </>
-          )}
-        </button>
-      )}
+      {/* 角丸スライダー */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-sm">
+          <span className="flex items-center gap-1.5 text-[var(--neu-text-muted)]">
+            <FrameCorners size={16} />
+            角丸
+          </span>
+          <span className="text-[var(--neu-text-primary)]">{Math.round(roundness * 100)}%</span>
+        </div>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          value={Math.round(roundness * 100)}
+          onChange={(e) => setRoundness(Number(e.target.value) / 100)}
+          className="neu-slider"
+        />
+      </div>
     </div>
   );
 }

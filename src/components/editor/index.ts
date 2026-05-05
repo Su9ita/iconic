@@ -6,3 +6,4 @@ export { BackgroundRemovalPanel } from "./BackgroundRemovalPanel";
 export { ExportPanel } from "./ExportPanel";
 export { ExportModal } from "./ExportModal";
 export { LayerPanel } from "./LayerPanel";
+export { BalancePreview } from "./BalancePreview";

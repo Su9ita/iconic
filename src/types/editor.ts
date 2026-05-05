@@ -1,5 +1,5 @@
 export type Tool = "move" | "brush" | "eraser" | "eyedropper" | "restore" | "pen";
-export type BgRemovalMethod = "ai" | "api" | "none" | "color" | "manual";
+export type BgRemovalMethod = "ai" | "none" | "color" | "manual";
 
 /**
  * RGB色
@@ -103,6 +103,9 @@ export interface EditorState {
   // クリッピング
   clipRegion: ClipRegion;
   isExportModalOpen: boolean;
+
+  // 角丸
+  roundness: number;
 }
 
 export interface EditorActions {
@@ -155,6 +158,7 @@ export interface EditorActions {
   clearPenPath: () => void;
   setCurrentPenPoint: (point: PenPoint | null) => void;
   setIsManualMode: (isManual: boolean) => void;
+  setRoundness: (roundness: number) => void;
 }
 
 export type EditorStore = EditorState & EditorActions;

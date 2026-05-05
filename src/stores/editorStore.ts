@@ -29,6 +29,7 @@ const initialState: EditorState = {
   isManualMode: false,
   clipRegion: { x: 64, y: 64, size: 512 },
   isExportModalOpen: false,
+  roundness: 0.8,
 };
 
 /**
@@ -302,4 +303,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set({ currentPenPoint: point }),
 
   setIsManualMode: (isManual: boolean) => set({ isManualMode: isManual }),
+
+  setRoundness: (roundness) => set({ roundness: Math.max(0, Math.min(1, roundness)) }),
 }));
