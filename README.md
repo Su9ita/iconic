@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# iconic
 
-## Getting Started
+画像から角丸アイコンを作成する Next.js アプリです。画像アップロード、背景除去、レイヤー編集、PNG/ICO 書き出しをブラウザ上で実行します。
 
-First, run the development server:
+## Web アプリとして公開する
+
+Vercel にデプロイすると、ローカルで `npm run dev` を起動しなくても URL から開けます。
+
+1. GitHub のこのリポジトリを Vercel に Import する
+2. Framework Preset は `Next.js` を選ぶ
+3. Build Command は `npm run build`
+4. Output Directory は空欄のまま
+5. Deploy を実行する
+
+このアプリは `next.config.ts` で `Cross-Origin-Opener-Policy` と `Cross-Origin-Embedder-Policy` を設定しています。ブラウザ内 AI 背景除去で必要になるため、Vercel 以外に置く場合も同じ HTTP ヘッダーが必要です。
+
+## ローカル開発
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+開発サーバー起動後、ブラウザで `http://localhost:3000` を開きます。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 動作確認
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run lint
+npm run build
+```
 
-## Learn More
+## 主な技術
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Next.js
+- React
+- Zustand
+- Tailwind CSS
+- @imgly/background-removal

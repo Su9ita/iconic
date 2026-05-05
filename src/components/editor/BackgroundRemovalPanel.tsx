@@ -3,7 +3,6 @@
 import { useState, useCallback } from "react";
 import { Robot, Cloud, X, Spinner, WarningCircle, Eyedropper, Hand } from "@phosphor-icons/react";
 import { useEditorStore } from "@/stores/editorStore";
-import { EditorStore } from "@/types/editor";
 import {
   removeBackgroundAI,
   removeBackgroundAPI,
@@ -141,14 +140,17 @@ export function BackgroundRemovalPanel() {
 
   return (
     <div className="flex flex-col gap-4 p-4 neu-card-sm">
-      <h3 className="text-sm font-medium text-[var(--neu-text-primary)]">
-        背景除去
-      </h3>
+      <div>
+        <p className="eyebrow">BACKGROUND</p>
+        <h3 className="text-base font-semibold text-[var(--neu-text-primary)]">
+          背景処理
+        </h3>
+      </div>
 
       {/* 方式選択 */}
-      <div className="flex gap-2">
+      <div className="grid grid-cols-2 gap-2">
         <button
-          className={`flex-1 neu-button neu-button-sm ${
+          className={`neu-button neu-button-sm ${
             bgRemovalMethod === "ai" ? "neu-button-primary" : ""
           }`}
           onClick={() => setBgRemovalMethod("ai")}
@@ -158,7 +160,7 @@ export function BackgroundRemovalPanel() {
           AI
         </button>
         <button
-          className={`flex-1 neu-button neu-button-sm ${
+          className={`neu-button neu-button-sm ${
             bgRemovalMethod === "api" ? "neu-button-primary" : ""
           }`}
           onClick={() => setBgRemovalMethod("api")}
@@ -168,7 +170,7 @@ export function BackgroundRemovalPanel() {
           API
         </button>
         <button
-          className={`flex-1 neu-button neu-button-sm ${
+          className={`neu-button neu-button-sm ${
             bgRemovalMethod === "color" ? "neu-button-primary" : ""
           }`}
           onClick={() => setBgRemovalMethod("color")}
@@ -178,7 +180,7 @@ export function BackgroundRemovalPanel() {
           色指定
         </button>
         <button
-          className={`flex-1 neu-button neu-button-sm ${
+          className={`neu-button neu-button-sm ${
             bgRemovalMethod === "manual" ? "neu-button-primary" : ""
           }`}
           onClick={() => setBgRemovalMethod("manual")}
@@ -189,7 +191,7 @@ export function BackgroundRemovalPanel() {
           手動
         </button>
         <button
-          className={`neu-button neu-button-sm ${
+          className={`neu-button neu-button-sm col-span-2 ${
             bgRemovalMethod === "none" ? "neu-button-primary" : ""
           }`}
           onClick={() => setBgRemovalMethod("none")}

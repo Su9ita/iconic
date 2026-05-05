@@ -12,9 +12,12 @@ export function ExportPanel() {
   return (
     <>
       <div className="flex flex-col gap-4 p-4 neu-card-sm">
-        <h3 className="text-sm font-medium text-[var(--neu-text-primary)]">
-          エクスポート
-        </h3>
+        <div>
+          <p className="eyebrow">EXPORT</p>
+          <h3 className="text-base font-semibold text-[var(--neu-text-primary)]">
+            書き出し
+          </h3>
+        </div>
 
         <button
           className="neu-button neu-button-primary w-full flex items-center justify-center gap-2"
@@ -25,7 +28,7 @@ export function ExportPanel() {
         </button>
 
         <p className="text-xs text-[var(--neu-text-muted)] text-center">
-          クリッピング範囲を調整してエクスポート
+          PNG / ICO 形式で保存
         </p>
       </div>
 

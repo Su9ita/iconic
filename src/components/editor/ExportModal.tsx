@@ -56,7 +56,6 @@ export function ExportModal() {
     isExportModalOpen,
     setClipRegion,
     setExportModalOpen,
-    resetClipRegion,
   } = useEditorStore();
 
   // レイヤー画像を読み込む
@@ -160,7 +159,7 @@ export function ExportModal() {
       // 旧方式
       ctx.drawImage(sourceImage, drawX, drawY, scaledWidth, scaledHeight);
     }
-  }, [sourceImage, imagePosition, imageScale, layers, loadedImages, getImageDrawParams]);
+  }, [sourceImage, layers, loadedImages, getImageDrawParams]);
 
   // オーバーレイキャンバス描画（クリップ枠とsquircle枠線）
   const drawOverlay = useCallback(() => {

@@ -1,6 +1,12 @@
 "use client";
 
-import { ArrowLeft, Info } from "@phosphor-icons/react";
+import {
+  ArrowLeft,
+  DownloadSimple,
+  ImageSquare,
+  MagicWand,
+  SlidersHorizontal,
+} from "@phosphor-icons/react";
 import { useEditorStore } from "@/stores/editorStore";
 import { EditorStore } from "@/types/editor";
 import {
@@ -13,16 +19,25 @@ import {
   LayerPanel,
 } from "@/components/editor";
 
+const steps = [
+  { label: "画像", icon: ImageSquare },
+  { label: "背景", icon: MagicWand },
+  { label: "調整", icon: SlidersHorizontal },
+  { label: "保存", icon: DownloadSimple },
+];
+
 export default function Home() {
   const sourceImage = useEditorStore((s: EditorStore) => s.sourceImage);
+  const processedImageUrl = useEditorStore((s: EditorStore) => s.processedImageUrl);
+  const layers = useEditorStore((s: EditorStore) => s.layers);
   const reset = useEditorStore((s: EditorStore) => s.reset);
+  const activeStep = !sourceImage ? 0 : !processedImageUrl ? 1 : layers.length > 0 ? 2 : 1;
 
   return (
-    <main className="min-h-screen p-4 md:p-8">
-      <div className="max-w-6xl mx-auto">
-        {/* ヘッダー */}
-        <header className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
+    <main className="min-h-screen px-4 py-5 md:px-8 md:py-7">
+      <div className="mx-auto flex max-w-7xl flex-col gap-5">
+        <header className="app-header">
+          <div className="flex min-w-0 items-center gap-3">
             {sourceImage && (
               <button
                 className="neu-button neu-button-sm neu-button-icon"
@@ -32,70 +47,75 @@ export default function Home() {
                 <ArrowLeft size={20} />
               </button>
             )}
-            <h1 className="text-2xl font-bold text-[var(--neu-text-primary)]">
-              iconic
-            </h1>
-            <span className="text-sm text-[var(--neu-text-muted)]">
-              角丸アイコン作成ツール
-            </span>
-          </div>
-
-          <button
-            className="neu-button neu-button-sm neu-button-icon"
-            title="使い方"
-          >
-            <Info size={20} />
-          </button>
-        </header>
-
-        {/* メインコンテンツ */}
-        {!sourceImage ? (
-          // アップローダー表示
-          <div className="flex flex-col items-center gap-6 py-12">
-            <ImageUploader />
-
-            <div className="text-center max-w-md">
-              <h2 className="text-lg font-medium text-[var(--neu-text-primary)] mb-2">
-                角丸アイコンを簡単作成
-              </h2>
+            <div className="min-w-0">
+              <h1 className="text-2xl font-semibold text-[var(--neu-text-primary)]">
+                iconic
+              </h1>
               <p className="text-sm text-[var(--neu-text-muted)]">
-                1. 画像をアップロード<br />
-                2. AIで背景を自動除去<br />
-                3. はみ出し部分をブラシで指定<br />
-                4. PNG/ICO形式でダウンロード
+                角丸アイコン作成ツール
               </p>
             </div>
           </div>
+
+          <nav className="step-nav" aria-label="作業ステップ">
+            {steps.map((step, index) => {
+              const Icon = step.icon;
+              const isActive = index === activeStep;
+              const isDone = index < activeStep;
+
+              return (
+                <div
+                  key={step.label}
+                  className={`step-item ${isActive ? "active" : ""} ${isDone ? "done" : ""}`}
+                >
+                  <Icon size={18} weight={isActive || isDone ? "fill" : "regular"} />
+                  <span>{step.label}</span>
+                </div>
+              );
+            })}
+          </nav>
+        </header>
+
+        {!sourceImage ? (
+          <section className="upload-layout">
+            <div className="upload-copy">
+              <p className="eyebrow">ICON EXPORTER</p>
+              <h2>画像からすぐにアプリアイコンを作成</h2>
+              <p>
+                背景除去、角丸マスク、PNG/ICO 書き出しまでをブラウザ上で完結できます。
+              </p>
+            </div>
+            <ImageUploader />
+          </section>
         ) : (
-          // エディター表示
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
-            {/* キャンバスエリア */}
-            <div className="flex flex-col gap-4">
+          <section className="editor-layout">
+            <div className="workspace-panel">
+              <div className="panel-heading">
+                <div>
+                  <p className="eyebrow">PREVIEW</p>
+                  <h2>アイコンプレビュー</h2>
+                </div>
+              </div>
               <EditorCanvas />
               <ScaleSlider />
 
-              {/* モバイル用ツール（小画面で表示） */}
               <div className="lg:hidden">
                 <ToolPanel />
               </div>
             </div>
 
-            {/* サイドパネル */}
-            <div className="flex flex-col gap-4">
-              {/* デスクトップ用ツール */}
+            <aside className="control-panel">
               <div className="hidden lg:block">
                 <ToolPanel />
               </div>
-
-              <LayerPanel />
               <BackgroundRemovalPanel />
+              <LayerPanel />
               <ExportPanel />
-            </div>
-          </div>
+            </aside>
+          </section>
         )}
 
-        {/* フッター */}
-        <footer className="mt-12 pt-6 border-t border-[var(--neu-shadow-dark)] text-center">
+        <footer className="app-footer">
           <p className="text-xs text-[var(--neu-text-muted)]">
             背景除去には
             <a

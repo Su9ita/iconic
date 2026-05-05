@@ -35,8 +35,15 @@ export function ToolPanel() {
 
   return (
     <div className="flex flex-col gap-4 p-4 neu-card-sm">
+      <div>
+        <p className="eyebrow">TOOLS</p>
+        <h3 className="text-base font-semibold text-[var(--neu-text-primary)]">
+          編集ツール
+        </h3>
+      </div>
+
       {/* ツール選択 */}
-      <div className="flex gap-2">
+      <div className="grid grid-cols-5 gap-2">
         <button
           className={`neu-tool ${activeTool === "move" ? "active" : ""}`}
           onClick={() => setActiveTool("move")}
@@ -94,7 +101,7 @@ export function ToolPanel() {
       {layers.length > 0 && (
         <div className="flex gap-2">
           <button
-            className={`neu-tool flex-1 ${!canUndo() ? "opacity-40" : ""}`}
+            className={`neu-button neu-button-sm flex-1 ${!canUndo() ? "opacity-40" : ""}`}
             onClick={undo}
             disabled={!canUndo()}
             title="元に戻す (Ctrl+Z)"
@@ -103,7 +110,7 @@ export function ToolPanel() {
             <span className="text-xs ml-1">戻す</span>
           </button>
           <button
-            className={`neu-tool flex-1 ${!canRedo() ? "opacity-40" : ""}`}
+            className={`neu-button neu-button-sm flex-1 ${!canRedo() ? "opacity-40" : ""}`}
             onClick={redo}
             disabled={!canRedo()}
             title="やり直す (Ctrl+Y)"

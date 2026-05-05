@@ -45,7 +45,6 @@ export function EditorCanvas() {
     showOriginal,
     penPoints,
     isPenPathClosed,
-    isManualMode,
     setImagePosition,
     addOverflowStroke,
     updateLayerEraserMask,
@@ -193,7 +192,7 @@ export function EditorCanvas() {
         }
       }
     }
-  }, [sourceImage, processedImageUrl, imagePosition, imageScale, showOriginal, layers, loadedImages, getImageDrawParams]);
+  }, [sourceImage, processedImageUrl, showOriginal, layers, loadedImages, getImageDrawParams]);
 
   // オーバーレイキャンバス描画（角丸マスク + ブラシ + 消しゴムプレビュー）
   const drawOverlay = useCallback(() => {
@@ -730,7 +729,7 @@ export function EditorCanvas() {
         setCurrentStroke([point]);
       }
     },
-    [activeTool, imagePosition, getCanvasPoint, handleEyedropper, penPoints, addPenPoint, closePenPath]
+    [activeTool, imagePosition, getCanvasPoint, handleEyedropper, penPoints]
   );
 
   const handlePointerMove = useCallback(

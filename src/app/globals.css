@@ -6,11 +6,14 @@
 
 :root {
   /* ベース背景 */
-  --neu-bg: #e8eef4;
+  --neu-bg: #f3f6f8;
+  --neu-surface: #ffffff;
+  --neu-surface-subtle: #edf2f6;
+  --neu-border: #dbe3ea;
 
   /* シャドウ */
   --neu-shadow-light: #ffffff;
-  --neu-shadow-dark: #d1d9e6;
+  --neu-shadow-dark: #cfd9e3;
 
   /* テキスト */
   --neu-text-primary: #2d3748;
@@ -18,11 +21,11 @@
   --neu-text-muted: #718096;
 
   /* アクセント */
-  --neu-accent: #6366f1;
-  --neu-accent-hover: #4f46e5;
-  --neu-success: #10b981;
-  --neu-warning: #f59e0b;
-  --neu-danger: #ef4444;
+  --neu-accent: #2563eb;
+  --neu-accent-hover: #1d4ed8;
+  --neu-success: #0f9f6e;
+  --neu-warning: #d97706;
+  --neu-danger: #dc2626;
 
   /* レガシー互換 */
   --background: var(--neu-bg);
@@ -31,6 +34,9 @@
 
 .dark {
   --neu-bg: #2d3748;
+  --neu-surface: #334155;
+  --neu-surface-subtle: #263241;
+  --neu-border: #475569;
   --neu-shadow-light: #3d4a5c;
   --neu-shadow-dark: #1a202c;
   --neu-text-primary: #f7fafc;
@@ -54,36 +60,40 @@ body {
   min-height: 100vh;
 }
 
+* {
+  box-sizing: border-box;
+}
+
 /* ========================================
    Neumorphism Utility Classes
    ======================================== */
 
 .neu-raised {
-  background: var(--neu-bg);
-  border-radius: 16px;
-  box-shadow: 3px 3px 6px var(--neu-shadow-dark);
+  background: var(--neu-surface);
+  border: 1px solid var(--neu-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(45, 55, 72, 0.08);
 }
 
 .neu-raised-sm {
-  background: var(--neu-bg);
-  border-radius: 12px;
-  box-shadow: 2px 2px 5px var(--neu-shadow-dark);
+  background: var(--neu-surface);
+  border: 1px solid var(--neu-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(45, 55, 72, 0.08);
 }
 
 .neu-pressed {
-  background: var(--neu-bg);
-  border-radius: 16px;
-  box-shadow:
-    inset 3px 3px 6px var(--neu-shadow-dark),
-    inset -3px -3px 6px var(--neu-shadow-light);
+  background: var(--neu-surface);
+  border: 1px dashed #aebdcc;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.04);
 }
 
 .neu-pressed-sm {
-  background: var(--neu-bg);
-  border-radius: 12px;
-  box-shadow:
-    inset 2px 2px 4px var(--neu-shadow-dark),
-    inset -2px -2px 4px var(--neu-shadow-light);
+  background: var(--neu-surface-subtle);
+  border: 1px solid var(--neu-border);
+  border-radius: 8px;
+  box-shadow: inset 0 1px 2px rgba(45, 55, 72, 0.08);
 }
 
 /* ========================================
@@ -96,23 +106,24 @@ body {
   align-items: center;
   justify-content: center;
   padding: 12px 24px;
-  border: none;
-  border-radius: 12px;
-  background: var(--neu-bg);
+  border: 1px solid var(--neu-border);
+  border-radius: 8px;
+  background: var(--neu-surface);
   color: var(--neu-text-primary);
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.1s ease, color 0.1s ease, transform 0.1s ease;
-  box-shadow: 2px 2px 5px var(--neu-shadow-dark);
+  transition: background-color 0.1s ease, border-color 0.1s ease, color 0.1s ease, transform 0.1s ease;
+  box-shadow: 0 2px 8px rgba(45, 55, 72, 0.08);
 }
 
 .neu-button:hover {
-  box-shadow: 3px 3px 6px var(--neu-shadow-dark);
+  border-color: #b8c7d6;
+  box-shadow: 0 4px 12px rgba(45, 55, 72, 0.1);
 }
 
 .neu-button:active {
   transform: scale(0.97);
-  box-shadow: 1px 1px 3px var(--neu-shadow-dark);
+  box-shadow: 0 1px 4px rgba(45, 55, 72, 0.12);
 }
 
 .neu-button:disabled {
@@ -123,10 +134,8 @@ body {
 .neu-button-primary {
   background: var(--neu-accent);
   color: white;
-  box-shadow:
-    4px 4px 8px rgba(99, 102, 241, 0.4),
-    -2px -2px 6px rgba(255, 255, 255, 0.8),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border-color: var(--neu-accent);
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.22);
 }
 
 .neu-button-primary:hover {
@@ -140,43 +149,41 @@ body {
 .neu-button-sm {
   padding: 8px 16px;
   font-size: 14px;
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 .neu-button-icon {
   padding: 10px;
-  border-radius: 50%;
+  border-radius: 8px;
 }
 
 .neu-card {
   padding: 20px;
-  border-radius: 20px;
-  background: var(--neu-bg);
-  box-shadow:
-    5px 5px 10px var(--neu-shadow-dark),
-    -5px -5px 10px var(--neu-shadow-light);
+  border-radius: 8px;
+  background: var(--neu-surface);
+  border: 1px solid var(--neu-border);
+  box-shadow: 0 10px 26px rgba(45, 55, 72, 0.08);
 }
 
 .neu-card-sm {
   padding: 16px;
-  border-radius: 16px;
-  background: var(--neu-bg);
-  box-shadow: 3px 3px 6px var(--neu-shadow-dark);
+  border-radius: 8px;
+  background: var(--neu-surface);
+  border: 1px solid var(--neu-border);
+  box-shadow: 0 6px 18px rgba(45, 55, 72, 0.08);
 }
 
 /* 入力フィールド */
 .neu-input {
   width: 100%;
   padding: 12px 16px;
-  border: none;
-  border-radius: 12px;
-  background: var(--neu-bg);
+  border: 1px solid var(--neu-border);
+  border-radius: 8px;
+  background: var(--neu-surface);
   color: var(--neu-text-primary);
   font-size: 16px;
   transition: background-color 0.1s ease, color 0.1s ease;
-  box-shadow:
-    inset 2px 2px 4px var(--neu-shadow-dark),
-    inset -2px -2px 4px var(--neu-shadow-light);
+  box-shadow: inset 0 1px 2px rgba(45, 55, 72, 0.08);
 }
 
 .neu-input::placeholder {
@@ -186,9 +193,8 @@ body {
 .neu-input:focus {
   outline: none;
   box-shadow:
-    inset 3px 3px 6px var(--neu-shadow-dark),
-    inset -3px -3px 6px var(--neu-shadow-light),
-    0 0 0 3px rgba(99, 102, 241, 0.2);
+    inset 0 1px 2px rgba(45, 55, 72, 0.08),
+    0 0 0 3px rgba(37, 99, 235, 0.16);
 }
 
 /* スライダー */
@@ -198,10 +204,8 @@ body {
   width: 100%;
   height: 8px;
   border-radius: 4px;
-  background: var(--neu-bg);
-  box-shadow:
-    inset 2px 2px 4px var(--neu-shadow-dark),
-    inset -2px -2px 4px var(--neu-shadow-light);
+  background: var(--neu-surface-subtle);
+  box-shadow: inset 0 1px 2px rgba(45, 55, 72, 0.08);
 }
 
 .neu-slider::-webkit-slider-thumb {
@@ -212,7 +216,7 @@ body {
   border-radius: 50%;
   background: var(--neu-accent);
   cursor: pointer;
-  box-shadow: 2px 2px 4px var(--neu-shadow-dark);
+  box-shadow: 0 2px 6px rgba(45, 55, 72, 0.18);
 }
 
 .neu-slider::-moz-range-thumb {
@@ -222,7 +226,7 @@ body {
   background: var(--neu-accent);
   cursor: pointer;
   border: none;
-  box-shadow: 2px 2px 4px var(--neu-shadow-dark);
+  box-shadow: 0 2px 6px rgba(45, 55, 72, 0.18);
 }
 
 /* ツールボタン */
@@ -232,12 +236,13 @@ body {
   justify-content: center;
   width: 48px;
   height: 48px;
-  border-radius: 12px;
-  background: var(--neu-bg);
+  border-radius: 8px;
+  border: 1px solid var(--neu-border);
+  background: var(--neu-surface);
   color: var(--neu-text-muted);
   cursor: pointer;
   transition: all 0.15s ease;
-  box-shadow: 2px 2px 5px var(--neu-shadow-dark);
+  box-shadow: 0 2px 8px rgba(45, 55, 72, 0.08);
 }
 
 .neu-tool:hover {
@@ -246,19 +251,17 @@ body {
 
 .neu-tool.active {
   color: var(--neu-accent);
-  box-shadow:
-    inset 2px 2px 4px var(--neu-shadow-dark),
-    inset -2px -2px 4px var(--neu-shadow-light);
+  background: rgba(37, 99, 235, 0.08);
+  border-color: rgba(37, 99, 235, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.08);
 }
 
 /* プログレスバー */
 .neu-progress {
   height: 8px;
   border-radius: 4px;
-  background: var(--neu-bg);
-  box-shadow:
-    inset 2px 2px 4px var(--neu-shadow-dark),
-    inset -2px -2px 4px var(--neu-shadow-light);
+  background: var(--neu-surface-subtle);
+  box-shadow: inset 0 1px 2px rgba(45, 55, 72, 0.08);
   overflow: hidden;
 }
 
@@ -267,6 +270,180 @@ body {
   background: linear-gradient(90deg, var(--neu-accent), #818cf8);
   border-radius: 4px;
   transition: width 0.3s ease;
+}
+
+/* ========================================
+   App Layout
+   ======================================== */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--neu-border);
+  border-radius: 8px;
+  background: var(--neu-surface);
+  box-shadow: 0 8px 24px rgba(45, 55, 72, 0.06);
+}
+
+.step-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.step-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 1px solid var(--neu-border);
+  border-radius: 8px;
+  color: var(--neu-text-muted);
+  background: var(--neu-surface);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.step-item.active {
+  color: var(--neu-accent);
+  border-color: rgba(37, 99, 235, 0.4);
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.step-item.done {
+  color: var(--neu-success);
+  border-color: rgba(15, 159, 110, 0.32);
+  background: rgba(15, 159, 110, 0.08);
+}
+
+.upload-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.78fr) minmax(320px, 1fr);
+  align-items: center;
+  gap: 28px;
+  min-height: calc(100vh - 180px);
+}
+
+.upload-copy {
+  max-width: 520px;
+}
+
+.upload-copy h2,
+.panel-heading h2 {
+  margin: 0;
+  color: var(--neu-text-primary);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.upload-copy h2 {
+  font-size: clamp(32px, 5vw, 56px);
+  line-height: 1.03;
+}
+
+.upload-copy p:not(.eyebrow) {
+  margin-top: 16px;
+  color: var(--neu-text-secondary);
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--neu-accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.editor-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 340px);
+  align-items: start;
+  gap: 18px;
+}
+
+.workspace-panel {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--neu-border);
+  border-radius: 8px;
+  background: var(--neu-surface);
+  box-shadow: 0 10px 28px rgba(45, 55, 72, 0.07);
+}
+
+.panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.panel-heading h2 {
+  font-size: 18px;
+}
+
+.control-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: sticky;
+  top: 18px;
+}
+
+.app-footer {
+  padding: 12px 0 4px;
+  text-align: center;
+}
+
+@media (max-width: 1023px) {
+  .editor-layout,
+  .upload-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .control-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 720px) {
+  .app-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .step-nav {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .step-item {
+    flex: 1 1 calc(50% - 4px);
+    justify-content: center;
+  }
+
+  .upload-layout {
+    gap: 20px;
+    min-height: auto;
+  }
+
+  .upload-copy h2 {
+    font-size: 34px;
+  }
+
+  .workspace-panel {
+    padding: 12px;
+  }
 }
 
 /* チェッカーボード背景（透明表示用） */

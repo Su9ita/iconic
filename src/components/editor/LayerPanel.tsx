@@ -20,9 +20,12 @@ export function LayerPanel() {
 
   return (
     <div className="flex flex-col gap-2 p-4 neu-card-sm">
-      <h3 className="text-sm font-medium text-[var(--neu-text-primary)] mb-1">
-        レイヤー
-      </h3>
+      <div className="mb-1">
+        <p className="eyebrow">LAYERS</p>
+        <h3 className="text-base font-semibold text-[var(--neu-text-primary)]">
+          レイヤー
+        </h3>
+      </div>
 
       <div className="flex flex-col gap-1">
         {reversedLayers.map((layer) => (
@@ -32,7 +35,7 @@ export function LayerPanel() {
               flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all
               ${activeLayerId === layer.id
                 ? "bg-[var(--neu-accent)] bg-opacity-20 border border-[var(--neu-accent)]"
-                : "hover:bg-[var(--neu-bg-secondary)]"
+                : "border border-transparent hover:bg-[var(--neu-surface-subtle)]"
               }
             `}
             onClick={() => setActiveLayer(layer.id)}

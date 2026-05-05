@@ -73,7 +73,7 @@ export function ImageUploader() {
       className={`
         relative w-full aspect-square max-w-[512px] mx-auto
         flex flex-col items-center justify-center gap-4
-        neu-pressed rounded-3xl cursor-pointer
+        neu-pressed cursor-pointer
         transition-all duration-200
         ${isDragging ? "scale-[1.02] ring-4 ring-[var(--neu-accent)] ring-opacity-50" : ""}
       `}
@@ -92,7 +92,7 @@ export function ImageUploader() {
 
       <div
         className={`
-          w-20 h-20 rounded-full flex items-center justify-center
+          w-20 h-20 rounded-lg flex items-center justify-center
           ${isDragging ? "bg-[var(--neu-accent)]" : "neu-raised"}
           transition-all duration-200
         `}
@@ -105,11 +105,11 @@ export function ImageUploader() {
       </div>
 
       <div className="text-center px-8">
-        <p className="text-[var(--neu-text-primary)] font-medium mb-1">
-          {isDragging ? "ここにドロップ" : "画像をアップロード"}
+        <p className="text-lg text-[var(--neu-text-primary)] font-semibold mb-1">
+          {isDragging ? "ここにドロップ" : "画像を選択"}
         </p>
         <p className="text-[var(--neu-text-muted)] text-sm">
-          ドラッグ＆ドロップ、クリック、またはペースト
+          ドラッグ、クリック、ペーストに対応
         </p>
       </div>
     </div>
