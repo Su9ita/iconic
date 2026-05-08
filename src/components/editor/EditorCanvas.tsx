@@ -45,6 +45,7 @@ export function EditorCanvas() {
     showOriginal,
     penPoints,
     isPenPathClosed,
+    clipRegion,
     roundness,
     setImagePosition,
     addOverflowStroke,
@@ -265,6 +266,22 @@ export function EditorCanvas() {
       ctx.restore();
     }
 
+    // 最終アイコンの正方形キャンバス枠。枠外は書き出し時に切り落とされる。
+    ctx.save();
+    ctx.fillStyle = "rgba(0, 0, 0, 0.18)";
+    ctx.fillRect(0, 0, WORKSPACE_SIZE, WORKSPACE_SIZE);
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(clipRegion.x, clipRegion.y, clipRegion.size, clipRegion.size);
+    ctx.restore();
+
+    ctx.save();
+    ctx.strokeStyle = "rgba(96, 165, 250, 0.9)";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([10, 6]);
+    ctx.strokeRect(clipRegion.x, clipRegion.y, clipRegion.size, clipRegion.size);
+    ctx.restore();
+
     // squircle枠の位置（640pxキャンバス内の中央512px領域内）
     const squircleX = SQUIRCLE_OFFSET + ICON_PADDING;
     const squircleY = SQUIRCLE_OFFSET + ICON_PADDING;
@@ -421,7 +438,7 @@ export function EditorCanvas() {
         }
       }
     }
-  }, [overflowStrokes, currentStroke, brushSize, activeTool, penPoints, isPenPathClosed, isPenDragging, pendingPenPoint, penDragStart, roundness]);
+  }, [overflowStrokes, currentStroke, brushSize, activeTool, penPoints, isPenPathClosed, isPenDragging, pendingPenPoint, penDragStart, clipRegion, roundness]);
 
   useEffect(() => {
     drawMainCanvas();
