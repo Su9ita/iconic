@@ -10,8 +10,17 @@ import {
   ArrowCounterClockwise,
   Path,
   FrameCorners,
+  SelectionForeground,
 } from "@phosphor-icons/react";
 import { useEditorStore } from "@/stores/editorStore";
+import { getClipMargins, updateClipMargin, ClipMarginEdge } from "@/lib/clipRegion";
+import { createSquirclePath } from "@/lib/squircleMask";
+import {
+  WORKSPACE_SIZE,
+  SQUIRCLE_OFFSET,
+  ICON_PADDING,
+  SQUIRCLE_SIZE,
+} from "@/lib/constants";
 
 export function ToolPanel() {
   const {
@@ -19,17 +28,65 @@ export function ToolPanel() {
     brushSize,
     layers,
     isManualMode,
+    clipRegion,
     roundness,
     setActiveTool,
     setBrushSize,
     clearOverflowStrokes,
+    setClipRegion,
     setRoundness,
+    updateLayerEraserMask,
+    saveHistory,
     undo,
     redo,
     canUndo,
     canRedo,
     clearPenPath,
   } = useEditorStore();
+  const clipMargins = getClipMargins(clipRegion);
+  const marginFields: { edge: ClipMarginEdge; label: string }[] = [
+    { edge: "top", label: "上" },
+    { edge: "right", label: "右" },
+    { edge: "bottom", label: "下" },
+    { edge: "left", label: "左" },
+  ];
+
+  const handleMarginChange = (edge: ClipMarginEdge, value: number) => {
+    setClipRegion(updateClipMargin(clipRegion, edge, value));
+  };
+
+  const handleClipBaseOutsideRound = () => {
+    const baseLayer = layers.find((layer) => layer.id === "base");
+    if (!baseLayer) return;
+
+    saveHistory();
+
+    const maskCanvas = document.createElement("canvas");
+    maskCanvas.width = WORKSPACE_SIZE;
+    maskCanvas.height = WORKSPACE_SIZE;
+    const maskCtx = maskCanvas.getContext("2d");
+    if (!maskCtx) return;
+
+    if (baseLayer.eraserMask) {
+      maskCtx.putImageData(baseLayer.eraserMask, 0, 0);
+    }
+
+    const outsideCanvas = document.createElement("canvas");
+    outsideCanvas.width = WORKSPACE_SIZE;
+    outsideCanvas.height = WORKSPACE_SIZE;
+    const outsideCtx = outsideCanvas.getContext("2d");
+    if (!outsideCtx) return;
+
+    outsideCtx.fillStyle = "#ffffff";
+    outsideCtx.fillRect(0, 0, WORKSPACE_SIZE, WORKSPACE_SIZE);
+    outsideCtx.globalCompositeOperation = "destination-out";
+    outsideCtx.translate(SQUIRCLE_OFFSET + ICON_PADDING, SQUIRCLE_OFFSET + ICON_PADDING);
+    createSquirclePath(outsideCtx, SQUIRCLE_SIZE, roundness);
+    outsideCtx.fill();
+
+    maskCtx.drawImage(outsideCanvas, 0, 0);
+    updateLayerEraserMask("base", maskCtx.getImageData(0, 0, WORKSPACE_SIZE, WORKSPACE_SIZE));
+  };
 
   return (
     <div className="flex flex-col gap-4 p-4 neu-card-sm">
@@ -119,6 +176,17 @@ export function ToolPanel() {
         </div>
       )}
 
+      {layers.some((layer) => layer.id === "base") && (
+        <button
+          className="neu-button neu-button-sm flex items-center justify-center gap-2"
+          onClick={handleClipBaseOutsideRound}
+          title="ベースレイヤーだけ角丸の外側を削除"
+        >
+          <SelectionForeground size={18} />
+          ベースを角丸で切り抜く
+        </button>
+      )}
+
       {/* ブラシ/消しゴム/復元ブラシサイズ */}
       {(activeTool === "brush" || activeTool === "eraser" || activeTool === "restore") && (
         <div className="space-y-2">
@@ -157,6 +225,33 @@ export function ToolPanel() {
           onChange={(e) => setRoundness(Number(e.target.value) / 100)}
           className="neu-slider"
         />
+      </div>
+
+      {/* 最終アイコン枠 */}
+      <div className="space-y-3 border-t border-[var(--neu-border)] pt-3">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-[var(--neu-text-muted)]">正方形アイコン枠</span>
+          <span className="text-[var(--neu-text-primary)]">{clipRegion.size}px</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {marginFields.map(({ edge, label }) => (
+            <label key={edge} className="space-y-1">
+              <span className="text-xs text-[var(--neu-text-muted)]">{label}余白</span>
+              <input
+                type="number"
+                min="-120"
+                max="320"
+                step="1"
+                value={clipMargins[edge]}
+                onChange={(e) => handleMarginChange(edge, Number(e.target.value))}
+                className="neu-input !py-2 !px-2 text-sm"
+              />
+            </label>
+          ))}
+        </div>
+        <p className="text-xs leading-relaxed text-[var(--neu-text-muted)]">
+          角丸枠から最終出力枠までの距離です。正方形を維持するため、反対軸の余白は自動調整されます。
+        </p>
       </div>
     </div>
   );

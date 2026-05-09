@@ -13,6 +13,7 @@ import { useEditorStore } from "@/stores/editorStore";
 import { createFinalCanvas } from "@/lib/canvasCompositor";
 import { generateIco, downloadBlob, downloadCanvasAsPng } from "@/lib/icoGenerator";
 import { drawSquircleOutline } from "@/lib/squircleMask";
+import { getClipMargins, updateClipMargin, ClipMarginEdge } from "@/lib/clipRegion";
 import {
   WORKSPACE_SIZE,
   ICON_SIZE,
@@ -21,7 +22,6 @@ import {
   SQUIRCLE_OFFSET,
   CLIP_MIN_SIZE,
   CLIP_MAX_SIZE,
-  ROUNDNESS,
 } from "@/lib/constants";
 
 // リサイズハンドルの検出範囲
@@ -32,6 +32,7 @@ type ResizeHandle = "nw" | "ne" | "sw" | "se" | null;
 export function ExportModal() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLCanvasElement>(null);
+  const finalPreviewRef = useRef<HTMLCanvasElement>(null);
 
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -58,6 +59,13 @@ export function ExportModal() {
     setClipRegion,
     setExportModalOpen,
   } = useEditorStore();
+  const clipMargins = getClipMargins(clipRegion);
+  const marginFields: { edge: ClipMarginEdge; label: string }[] = [
+    { edge: "top", label: "上" },
+    { edge: "right", label: "右" },
+    { edge: "bottom", label: "下" },
+    { edge: "left", label: "左" },
+  ];
 
   // レイヤー画像を読み込む
   useEffect(() => {
@@ -222,6 +230,60 @@ export function ExportModal() {
   useEffect(() => {
     drawOverlay();
   }, [drawOverlay]);
+
+  useEffect(() => {
+    const canvas = finalPreviewRef.current;
+    if (!canvas || !sourceImage || !isExportModalOpen) return;
+
+    let cancelled = false;
+
+    const drawFinalPreview = async () => {
+      const finalCanvas = await createFinalCanvas({
+        sourceImage,
+        processedImageUrl,
+        imagePosition,
+        imageScale,
+        overflowStrokes,
+        brushSize,
+        showOriginal,
+        layers,
+        isManualMode,
+        clipRegion,
+        roundness,
+      });
+
+      if (cancelled) return;
+
+      canvas.width = finalCanvas.width;
+      canvas.height = finalCanvas.height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(finalCanvas, 0, 0);
+    };
+
+    drawFinalPreview().catch((error) => {
+      console.error("Preview error:", error);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    sourceImage,
+    processedImageUrl,
+    imagePosition,
+    imageScale,
+    overflowStrokes,
+    brushSize,
+    showOriginal,
+    layers,
+    isManualMode,
+    clipRegion,
+    roundness,
+    isExportModalOpen,
+  ]);
 
   // カーソル位置からリサイズハンドルを検出
   const detectResizeHandle = useCallback(
@@ -416,6 +478,13 @@ export function ExportModal() {
     [clipRegion, setClipRegion]
   );
 
+  const handleMarginChange = useCallback(
+    (edge: ClipMarginEdge, value: number) => {
+      setClipRegion(updateClipMargin(clipRegion, edge, value));
+    },
+    [clipRegion, setClipRegion]
+  );
+
   // エクスポート処理
   const handleExport = useCallback(
     async (format: "png" | "ico") => {
@@ -484,7 +553,7 @@ export function ExportModal() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-[var(--neu-bg)] rounded-2xl shadow-xl max-w-2xl w-full mx-4 neu-card">
+      <div className="bg-[var(--neu-bg)] rounded-2xl shadow-xl max-w-5xl w-full mx-4 neu-card">
         {/* ヘッダー */}
         <div className="flex items-center justify-between p-4 border-b border-[var(--neu-shadow-light)]">
           <h2 className="text-lg font-medium text-[var(--neu-text-primary)]">エクスポート</h2>
@@ -496,29 +565,48 @@ export function ExportModal() {
           </button>
         </div>
 
-        {/* プレビューキャンバス */}
-        <div className="p-4">
-          <div className="relative mx-auto" style={{ width: 400, height: 400 }}>
-            <canvas
-              ref={canvasRef}
-              width={WORKSPACE_SIZE}
-              height={WORKSPACE_SIZE}
-              className="absolute inset-0 w-full h-full"
-            />
-            <canvas
-              ref={overlayRef}
-              width={WORKSPACE_SIZE}
-              height={WORKSPACE_SIZE}
-              className="absolute inset-0 w-full h-full cursor-move"
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseUp}
-            />
+        <div className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_260px]">
+          {/* プレビューキャンバス */}
+          <div>
+            <div className="relative mx-auto" style={{ width: 400, height: 400 }}>
+              <canvas
+                ref={canvasRef}
+                width={WORKSPACE_SIZE}
+                height={WORKSPACE_SIZE}
+                className="absolute inset-0 w-full h-full"
+              />
+              <canvas
+                ref={overlayRef}
+                width={WORKSPACE_SIZE}
+                height={WORKSPACE_SIZE}
+                className="absolute inset-0 w-full h-full cursor-move"
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+              />
+            </div>
+            <p className="text-xs text-center text-[var(--neu-text-muted)] mt-2">
+              ドラッグで移動、四隅でリサイズ（1:1維持）
+            </p>
           </div>
-          <p className="text-xs text-center text-[var(--neu-text-muted)] mt-2">
-            ドラッグで移動、四隅でリサイズ（1:1維持）
-          </p>
+
+          <div>
+            <p className="mb-2 text-sm font-medium text-[var(--neu-text-primary)]">
+              実際の出力プレビュー
+            </p>
+            <div className="checker-bg flex aspect-square w-full items-center justify-center overflow-hidden rounded-lg border border-[var(--neu-border)]">
+              <canvas
+                ref={finalPreviewRef}
+                width={clipRegion.size}
+                height={clipRegion.size}
+                className="h-full w-full object-contain"
+              />
+            </div>
+            <p className="mt-2 text-center text-xs text-[var(--neu-text-muted)]">
+              {clipRegion.size} x {clipRegion.size}px
+            </p>
+          </div>
         </div>
 
         {/* サイズコントロール */}
@@ -547,6 +635,25 @@ export function ExportModal() {
               </button>
             ))}
           </div>
+          <div className="mt-4 grid grid-cols-4 gap-2">
+            {marginFields.map(({ edge, label }) => (
+              <label key={edge} className="space-y-1">
+                <span className="text-xs text-[var(--neu-text-muted)]">{label}余白</span>
+                <input
+                  type="number"
+                  min="-120"
+                  max="320"
+                  step="1"
+                  value={clipMargins[edge]}
+                  onChange={(e) => handleMarginChange(edge, Number(e.target.value))}
+                  className="neu-input !py-2 !px-2 text-sm"
+                />
+              </label>
+            ))}
+          </div>
+          <p className="mt-2 text-xs leading-relaxed text-[var(--neu-text-muted)]">
+            角丸枠から最終出力枠までの距離です。正方形を維持するため、反対軸の余白は自動調整されます。
+          </p>
         </div>
 
         {/* エクスポートボタン */}
