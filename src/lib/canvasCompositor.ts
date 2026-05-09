@@ -83,6 +83,23 @@ function buildSquircleMask(roundness: number): HTMLCanvasElement {
   return canvas;
 }
 
+function applyEraserMask(
+  ctx: CanvasRenderingContext2D,
+  eraserMask: ImageData | null
+) {
+  if (!eraserMask) return;
+
+  const maskCanvas = document.createElement("canvas");
+  maskCanvas.width = WORKSPACE_SIZE;
+  maskCanvas.height = WORKSPACE_SIZE;
+  const maskCtx = maskCanvas.getContext("2d")!;
+  maskCtx.putImageData(eraserMask, 0, 0);
+
+  ctx.globalCompositeOperation = "destination-out";
+  ctx.drawImage(maskCanvas, 0, 0);
+  ctx.globalCompositeOperation = "source-over";
+}
+
 /**
  * 最終出力用キャンバスを生成（レイヤーシステム対応）
  */
@@ -135,6 +152,8 @@ export async function createFinalCanvas(
         // 画像を描画
         baseCtx.drawImage(baseImg, drawX, drawY, scaledWidth, scaledHeight);
 
+        applyEraserMask(baseCtx, baseLayer.eraserMask);
+
         // 手動モードでない場合のみsquircleでクリップ
         if (!isManualMode) {
           baseCtx.globalCompositeOperation = "destination-in";
@@ -156,19 +175,7 @@ export async function createFinalCanvas(
         // 画像を描画
         charCtx.drawImage(charImg, drawX, drawY, scaledWidth, scaledHeight);
 
-        // 消しゴムマスクを適用
-        if (characterLayer.eraserMask) {
-          // マスクを一時キャンバスに描画してからdrawImageで合成
-          const maskCanvas = document.createElement("canvas");
-          maskCanvas.width = WORKSPACE_SIZE;
-          maskCanvas.height = WORKSPACE_SIZE;
-          const maskCtx = maskCanvas.getContext("2d")!;
-          maskCtx.putImageData(characterLayer.eraserMask, 0, 0);
-
-          charCtx.globalCompositeOperation = "destination-out";
-          charCtx.drawImage(maskCanvas, 0, 0);
-          charCtx.globalCompositeOperation = "source-over";
-        }
+        applyEraserMask(charCtx, characterLayer.eraserMask);
 
         // 手動モードの場合、characterレイヤーは楕円マスク適用なし
         // 通常モードの場合、キャラクターは全体を表示（アイコン外のはみ出し部分が見える）
