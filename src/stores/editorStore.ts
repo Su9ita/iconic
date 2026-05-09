@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { EditorStore, EditorState, Layer, HistoryEntry, PenPoint } from "@/types/editor";
+import { EditorStore, EditorState, Layer, HistoryEntry } from "@/types/editor";
 
 const MAX_HISTORY = 50; // 履歴の最大数
 
@@ -15,18 +15,7 @@ const initialState: EditorState = {
   activeTool: "move",
   brushSize: 30,
   overflowStrokes: [],
-  bgRemovalMethod: "ai",
-  removeBgApiKey: null,
-  isProcessing: false,
-  processingProgress: 0,
-  processingMessage: "",
-  selectedColor: null,
-  colorTolerance: 30,
   showOriginal: false,
-  penPoints: [],
-  currentPenPoint: null,
-  isPenPathClosed: false,
-  isManualMode: false,
   clipRegion: { x: 64, y: 64, size: 512 },
   isExportModalOpen: false,
   roundness: 0.8,
@@ -73,7 +62,26 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       imagePosition: { x: 0, y: 0 },
       imageScale: fitScale / Math.min(canvasSize / img.width, canvasSize / img.height),
       overflowStrokes: [],
-      processedImageUrl: null,
+      processedImageUrl: img.src,
+      layers: [
+        {
+          id: "base",
+          name: "ベース（元画像）",
+          visible: true,
+          imageUrl: img.src,
+          eraserMask: null,
+        },
+        {
+          id: "character",
+          name: "上レイヤー",
+          visible: true,
+          imageUrl: img.src,
+          eraserMask: null,
+        },
+      ],
+      activeLayerId: "character",
+      history: [],
+      historyIndex: -1,
     });
   },
 
@@ -94,29 +102,9 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
   clearOverflowStrokes: () => set({ overflowStrokes: [] }),
 
-  setBgRemovalMethod: (method) => set({ bgRemovalMethod: method }),
-
-  setRemoveBgApiKey: (key) => set({ removeBgApiKey: key }),
-
-  setIsProcessing: (processing) =>
-    set({
-      isProcessing: processing,
-      ...(processing ? {} : { processingProgress: 0, processingMessage: "" }),
-    }),
-
-  setProcessingProgress: (progress, message) =>
-    set({
-      processingProgress: progress,
-      ...(message !== undefined ? { processingMessage: message } : {}),
-    }),
-
   toggleShowOriginal: () => set((state) => ({ showOriginal: !state.showOriginal })),
 
   reset: () => set(initialState),
-
-  // 色指定による背景除去
-  setSelectedColor: (color) => set({ selectedColor: color }),
-  setColorTolerance: (tolerance) => set({ colorTolerance: Math.max(0, Math.min(100, tolerance)) }),
 
   // レイヤー操作
   addLayer: (layer: Layer) =>
@@ -161,9 +149,9 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     })),
 
   /**
-   * 画像読み込み時に2つのレイヤーを初期化
+   * 2つのレイヤーを初期化
    * - 下: 元画像（アイコン内で見える）
-   * - 上: 背景削除済み画像（はみ出し部分）
+   * - 上: 元画像（はみ出し部分の編集用）
    */
   initializeLayers: (sourceUrl: string, processedUrl: string | null) =>
     set({
@@ -278,31 +266,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   setClipRegion: (region) => set({ clipRegion: region }),
   setExportModalOpen: (open) => set({ isExportModalOpen: open }),
   resetClipRegion: () => set({ clipRegion: { x: 64, y: 64, size: 512 } }),
-
-  // ペンツール操作
-  addPenPoint: (point: PenPoint) =>
-    set((state) => ({
-      penPoints: [...state.penPoints, point],
-    })),
-
-  updatePenPoint: (index: number, point: PenPoint) =>
-    set((state) => ({
-      penPoints: state.penPoints.map((p, i) => (i === index ? point : p)),
-    })),
-
-  closePenPath: () => set({ isPenPathClosed: true }),
-
-  clearPenPath: () =>
-    set({
-      penPoints: [],
-      currentPenPoint: null,
-      isPenPathClosed: false,
-    }),
-
-  setCurrentPenPoint: (point: PenPoint | null) =>
-    set({ currentPenPoint: point }),
-
-  setIsManualMode: (isManual: boolean) => set({ isManualMode: isManual }),
 
   setRoundness: (roundness) => set({ roundness: Math.max(0, Math.min(1, roundness)) }),
 }));

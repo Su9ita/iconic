@@ -28,7 +28,6 @@ export interface CompositeOptions {
   brushSize: number;
   showOriginal: boolean;
   layers: Layer[];
-  isManualMode?: boolean;
   clipRegion?: ClipRegion;
   outputSize?: number;
   roundness?: number;
@@ -115,7 +114,6 @@ export async function createFinalCanvas(
     brushSize,
     showOriginal,
     layers,
-    isManualMode,
     clipRegion,
     outputSize,
     roundness = ROUNDNESS,
@@ -154,11 +152,8 @@ export async function createFinalCanvas(
 
         applyEraserMask(baseCtx, baseLayer.eraserMask);
 
-        // 手動モードでない場合のみsquircleでクリップ
-        if (!isManualMode) {
-          baseCtx.globalCompositeOperation = "destination-in";
-          baseCtx.drawImage(squircleMask, 0, 0);
-        }
+        baseCtx.globalCompositeOperation = "destination-in";
+        baseCtx.drawImage(squircleMask, 0, 0);
 
         // メインキャンバスに合成
         ctx.drawImage(baseCanvas, 0, 0);

@@ -17,7 +17,6 @@ export function BalancePreview() {
     brushSize,
     showOriginal,
     layers,
-    isManualMode,
     roundness,
   } = useEditorStore();
 
@@ -39,7 +38,6 @@ export function BalancePreview() {
           brushSize,
           showOriginal,
           layers,
-          isManualMode,
           roundness,
         });
 
@@ -77,7 +75,7 @@ export function BalancePreview() {
     return () => {
       cancelled = true;
     };
-  }, [sourceImage, processedImageUrl, imagePosition, imageScale, overflowStrokes, brushSize, showOriginal, layers, isManualMode, roundness]);
+  }, [sourceImage, processedImageUrl, imagePosition, imageScale, overflowStrokes, brushSize, showOriginal, layers, roundness]);
 
   if (!sourceImage || layers.length === 0) return null;
 

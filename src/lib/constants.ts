@@ -7,8 +7,8 @@ export const WORKSPACE_SIZE = 640; // 編集用キャンバスサイズ
 
 // アイコン出力領域
 export const ICON_SIZE = 512; // アイコンの最終出力サイズ
-export const ICON_PADDING = 8; // squircle内側余白
-export const SQUIRCLE_SIZE = ICON_SIZE - ICON_PADDING * 2; // 496px
+export const ICON_PADDING = 25; // squircle内側余白
+export const SQUIRCLE_SIZE = ICON_SIZE - ICON_PADDING * 2; // 462px
 
 // 角丸の曲率
 export const ROUNDNESS = 0.8;

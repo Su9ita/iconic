@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "iconic - 角丸アイコン作成ツール",
-  description: "背景除去と角丸マスクで透過PNGアイコンを作成",
+  description: "角丸マスクとレイヤー調整でPNG/ICOアイコンを作成",
 };
 
 export default function RootLayout({

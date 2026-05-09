@@ -12,7 +12,6 @@ import {
   ROUNDNESS,
 } from "@/lib/constants";
 import { Layer, Position } from "@/types/editor";
-import { pickColorFromImage } from "@/lib/colorRemoval";
 
 
 // 各レイヤーのキャンバスデータを保持
@@ -27,10 +26,6 @@ export function EditorCanvas() {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [currentStroke, setCurrentStroke] = useState<{ x: number; y: number }[]>([]);
   const [loadedImages, setLoadedImages] = useState<Map<string, HTMLImageElement>>(new Map());
-  const [showPenActions, setShowPenActions] = useState(false);
-  const [isPenDragging, setIsPenDragging] = useState(false);
-  const [penDragStart, setPenDragStart] = useState<{ x: number; y: number } | null>(null);
-  const [pendingPenPoint, setPendingPenPoint] = useState<{ x: number; y: number } | null>(null);
 
   const {
     sourceImage,
@@ -43,21 +38,12 @@ export function EditorCanvas() {
     brushSize,
     overflowStrokes,
     showOriginal,
-    penPoints,
-    isPenPathClosed,
     clipRegion,
     roundness,
     setImagePosition,
     addOverflowStroke,
     updateLayerEraserMask,
-    updateLayerImageUrl,
     saveHistory,
-    setSelectedColor,
-    setActiveTool,
-    addPenPoint,
-    updatePenPoint,
-    closePenPath,
-    clearPenPath,
   } = useEditorStore();
 
   // レイヤー画像を読み込む
@@ -205,9 +191,6 @@ export function EditorCanvas() {
 
     ctx.clearRect(0, 0, WORKSPACE_SIZE, WORKSPACE_SIZE);
 
-    // カーソル追従用の一時ハンドルを描画するための状態を取得
-    const currentMousePos = penDragStart;
-
     // オーバーフローストローク描画（緑色半透明）
     if (overflowStrokes.length > 0 || currentStroke.length > 0) {
       ctx.save();
@@ -298,147 +281,7 @@ export function EditorCanvas() {
     drawSquircleOutline(ctx, SQUIRCLE_SIZE, roundness, "rgba(99, 102, 241, 0.6)", 3);
     ctx.restore();
 
-    // ペンツールのパス描画
-    if (activeTool === "pen") {
-      // 描画対象のポイント配列を作成（ドラッグ中の一時ポイントを含む）
-      const drawPoints = [...penPoints];
-
-      // ドラッグ中の一時ポイントを追加
-      if (isPenDragging && pendingPenPoint && currentMousePos) {
-        const dx = currentMousePos.x - pendingPenPoint.x;
-        const dy = currentMousePos.y - pendingPenPoint.y;
-
-        drawPoints.push({
-          x: pendingPenPoint.x,
-          y: pendingPenPoint.y,
-          handleOut: { x: currentMousePos.x, y: currentMousePos.y },
-          handleIn: { x: pendingPenPoint.x - dx, y: pendingPenPoint.y - dy }
-        });
-      }
-
-      if (drawPoints.length > 0) {
-        ctx.save();
-        ctx.strokeStyle = isPenPathClosed ? "rgba(59, 130, 246, 0.8)" : "rgba(16, 185, 129, 0.8)";
-        ctx.lineWidth = 2;
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-
-        // パスを描画（ベジェ曲線）
-        ctx.beginPath();
-        ctx.moveTo(drawPoints[0].x, drawPoints[0].y);
-
-        for (let i = 1; i < drawPoints.length; i++) {
-          const prev = drawPoints[i - 1];
-          const curr = drawPoints[i];
-
-          // ベジェ曲線で接続（ハンドルがある場合）
-          if (prev.handleOut && curr.handleIn) {
-            ctx.bezierCurveTo(
-              prev.handleOut.x,
-              prev.handleOut.y,
-              curr.handleIn.x,
-              curr.handleIn.y,
-              curr.x,
-              curr.y
-            );
-          } else if (prev.handleOut) {
-            ctx.quadraticCurveTo(prev.handleOut.x, prev.handleOut.y, curr.x, curr.y);
-          } else if (curr.handleIn) {
-            ctx.quadraticCurveTo(curr.handleIn.x, curr.handleIn.y, curr.x, curr.y);
-          } else {
-            ctx.lineTo(curr.x, curr.y);
-          }
-        }
-
-        // パスが閉じている場合は最初の点に戻る
-        if (isPenPathClosed && drawPoints.length > 2) {
-          const last = drawPoints[drawPoints.length - 1];
-          const first = drawPoints[0];
-          if (last.handleOut && first.handleIn) {
-            ctx.bezierCurveTo(
-              last.handleOut.x,
-              last.handleOut.y,
-              first.handleIn.x,
-              first.handleIn.y,
-              first.x,
-              first.y
-            );
-          } else {
-            ctx.lineTo(first.x, first.y);
-          }
-          ctx.closePath();
-
-          // 閉じたパスは破線で表示
-          ctx.setLineDash([5, 5]);
-          ctx.fillStyle = "rgba(59, 130, 246, 0.1)";
-          ctx.fill();
-        }
-
-        ctx.stroke();
-        ctx.restore();
-
-        // アンカーポイントを描画
-        for (let i = 0; i < drawPoints.length; i++) {
-          const point = drawPoints[i];
-          const isTemporary = i === drawPoints.length - 1 && isPenDragging;
-
-          // アンカーポイント
-          ctx.save();
-          ctx.fillStyle = isTemporary ? "rgba(16, 185, 129, 0.8)" : "rgba(59, 130, 246, 1)";
-          ctx.strokeStyle = "white";
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.arc(point.x, point.y, 5, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.stroke();
-          ctx.restore();
-
-          // ハンドル描画
-          if (point.handleIn) {
-            ctx.save();
-            ctx.strokeStyle = isTemporary ? "rgba(16, 185, 129, 0.5)" : "rgba(59, 130, 246, 0.6)";
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(point.x, point.y);
-            ctx.lineTo(point.handleIn.x, point.handleIn.y);
-            ctx.stroke();
-            ctx.fillStyle = isTemporary ? "rgba(16, 185, 129, 0.8)" : "rgba(59, 130, 246, 0.8)";
-            ctx.beginPath();
-            ctx.arc(point.handleIn.x, point.handleIn.y, 3, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-          }
-
-          if (point.handleOut) {
-            ctx.save();
-            ctx.strokeStyle = isTemporary ? "rgba(16, 185, 129, 0.5)" : "rgba(59, 130, 246, 0.6)";
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(point.x, point.y);
-            ctx.lineTo(point.handleOut.x, point.handleOut.y);
-            ctx.stroke();
-            ctx.fillStyle = isTemporary ? "rgba(16, 185, 129, 0.8)" : "rgba(59, 130, 246, 0.8)";
-            ctx.beginPath();
-            ctx.arc(point.handleOut.x, point.handleOut.y, 3, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-          }
-        }
-
-        // 最初の点をハイライト（閉じる候補として）
-        if (penPoints.length > 2 && !isPenPathClosed && !isPenDragging) {
-          const firstPoint = penPoints[0];
-          ctx.save();
-          ctx.strokeStyle = "rgba(16, 185, 129, 1)";
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.arc(firstPoint.x, firstPoint.y, 8, 0, Math.PI * 2);
-          ctx.stroke();
-          ctx.restore();
-        }
-      }
-    }
-  }, [overflowStrokes, currentStroke, brushSize, activeTool, penPoints, isPenPathClosed, isPenDragging, pendingPenPoint, penDragStart, clipRegion, roundness]);
+  }, [overflowStrokes, currentStroke, brushSize, activeTool, clipRegion, roundness]);
 
   useEffect(() => {
     drawMainCanvas();
@@ -458,11 +301,6 @@ export function EditorCanvas() {
       img.src = processedImageUrl;
     }
   }, [processedImageUrl, drawMainCanvas]);
-
-  // パスが閉じられたら選択UIを表示
-  useEffect(() => {
-    setShowPenActions(isPenPathClosed);
-  }, [isPenPathClosed]);
 
   // マウス/タッチイベント処理
   const getCanvasPoint = useCallback((e: React.MouseEvent | React.TouchEvent) => {
@@ -529,26 +367,6 @@ export function EditorCanvas() {
     updateLayerEraserMask(activeLayerId, newMask);
   }, [activeLayerId, layers, brushSize, updateLayerEraserMask]);
 
-  // スポイトで色を取得
-  const handleEyedropper = useCallback((point: { x: number; y: number }) => {
-    if (!sourceImage) return;
-
-    const color = pickColorFromImage(
-      sourceImage,
-      point.x,
-      point.y,
-      imagePosition,
-      imageScale,
-      WORKSPACE_SIZE
-    );
-
-    if (color) {
-      setSelectedColor(color);
-      // スポイト使用後は移動ツールに戻す
-      setActiveTool("move");
-    }
-  }, [sourceImage, imagePosition, imageScale, setSelectedColor, setActiveTool]);
-
   // 復元ブラシストロークを適用（消しゴムの逆）
   const applyRestoreStroke = useCallback((stroke: { x: number; y: number }[]) => {
     if (!activeLayerId || stroke.length < 2) return;
@@ -583,161 +401,10 @@ export function EditorCanvas() {
     updateLayerEraserMask(activeLayerId, newMask);
   }, [activeLayerId, layers, brushSize, updateLayerEraserMask]);
 
-  // ペンツールのパスを適用（画像を直接編集）
-  const applyPenPathMask = useCallback((deleteOutside: boolean) => {
-    if (!activeLayerId || penPoints.length < 3) return;
-
-    const layer = layers.find((l: Layer) => l.id === activeLayerId);
-    if (!layer) return;
-
-    const img = loadedImages.get(layer.id);
-    if (!img || !sourceImage) return;
-
-    saveHistory(); // 履歴を保存
-
-    // 画像の描画パラメータを取得
-    const imgWidth = sourceImage.width;
-    const imgHeight = sourceImage.height;
-    const fitScale = Math.min(ICON_SIZE / imgWidth, ICON_SIZE / imgHeight);
-    const scaledWidth = imgWidth * fitScale * imageScale;
-    const scaledHeight = imgHeight * fitScale * imageScale;
-    const drawX = (WORKSPACE_SIZE - scaledWidth) / 2 + imagePosition.x;
-    const drawY = (WORKSPACE_SIZE - scaledHeight) / 2 + imagePosition.y;
-
-    // キャンバス座標から画像ローカル座標への変換関数
-    const canvasToImageLocal = (canvasX: number, canvasY: number) => {
-      // キャンバス座標から画像上の相対位置を計算
-      const localX = (canvasX - drawX) / scaledWidth;
-      const localY = (canvasY - drawY) / scaledHeight;
-
-      // 画像サイズに変換
-      return {
-        x: localX * img.width,
-        y: localY * img.height
-      };
-    };
-
-    // 新しい画像キャンバスを作成（元の画像サイズ）
-    const newImageCanvas = document.createElement("canvas");
-    newImageCanvas.width = img.width;
-    newImageCanvas.height = img.height;
-    const newImageCtx = newImageCanvas.getContext("2d")!;
-
-    // 元の画像を描画
-    newImageCtx.drawImage(img, 0, 0);
-
-    // パスを画像ローカル座標に変換して描画する関数
-    const drawPath = (ctx: CanvasRenderingContext2D) => {
-      ctx.beginPath();
-
-      const firstLocal = canvasToImageLocal(penPoints[0].x, penPoints[0].y);
-      ctx.moveTo(firstLocal.x, firstLocal.y);
-
-      for (let i = 1; i < penPoints.length; i++) {
-        const prev = penPoints[i - 1];
-        const curr = penPoints[i];
-        const currLocal = canvasToImageLocal(curr.x, curr.y);
-
-        if (prev.handleOut && curr.handleIn) {
-          const handleOutLocal = canvasToImageLocal(prev.handleOut.x, prev.handleOut.y);
-          const handleInLocal = canvasToImageLocal(curr.handleIn.x, curr.handleIn.y);
-          ctx.bezierCurveTo(
-            handleOutLocal.x, handleOutLocal.y,
-            handleInLocal.x, handleInLocal.y,
-            currLocal.x, currLocal.y
-          );
-        } else if (prev.handleOut) {
-          const handleOutLocal = canvasToImageLocal(prev.handleOut.x, prev.handleOut.y);
-          ctx.quadraticCurveTo(handleOutLocal.x, handleOutLocal.y, currLocal.x, currLocal.y);
-        } else if (curr.handleIn) {
-          const handleInLocal = canvasToImageLocal(curr.handleIn.x, curr.handleIn.y);
-          ctx.quadraticCurveTo(handleInLocal.x, handleInLocal.y, currLocal.x, currLocal.y);
-        } else {
-          ctx.lineTo(currLocal.x, currLocal.y);
-        }
-      }
-
-      // パスを閉じる
-      const last = penPoints[penPoints.length - 1];
-      const first = penPoints[0];
-      const firstLocal2 = canvasToImageLocal(first.x, first.y);
-
-      if (last.handleOut && first.handleIn) {
-        const handleOutLocal = canvasToImageLocal(last.handleOut.x, last.handleOut.y);
-        const handleInLocal = canvasToImageLocal(first.handleIn.x, first.handleIn.y);
-        ctx.bezierCurveTo(
-          handleOutLocal.x, handleOutLocal.y,
-          handleInLocal.x, handleInLocal.y,
-          firstLocal2.x, firstLocal2.y
-        );
-      } else {
-        ctx.lineTo(firstLocal2.x, firstLocal2.y);
-      }
-      ctx.closePath();
-    };
-
-    // パスを使って切り抜き
-    drawPath(newImageCtx);
-
-    if (deleteOutside) {
-      // 範囲外を削除: destination-in でパス内のみ残す
-      newImageCtx.globalCompositeOperation = "destination-in";
-    } else {
-      // 範囲内を削除: destination-out でパス内を削除
-      newImageCtx.globalCompositeOperation = "destination-out";
-    }
-
-    newImageCtx.fill();
-
-    // 新しい画像をData URLとして取得
-    const newDataUrl = newImageCanvas.toDataURL("image/png");
-
-    // レイヤーの画像を更新
-    updateLayerImageUrl(activeLayerId, newDataUrl);
-
-    // eraserMaskをクリア（もう使わない）
-    const emptyMask = newImageCtx.createImageData(WORKSPACE_SIZE, WORKSPACE_SIZE);
-    updateLayerEraserMask(activeLayerId, emptyMask);
-
-    // パスをクリア
-    clearPenPath();
-    setShowPenActions(false);
-  }, [activeLayerId, layers, penPoints, updateLayerImageUrl, updateLayerEraserMask, clearPenPath, saveHistory, loadedImages, sourceImage, imagePosition, imageScale]);
-
   const handlePointerDown = useCallback(
     (e: React.MouseEvent | React.TouchEvent) => {
       const point = getCanvasPoint(e);
       if (!point) return;
-
-      // スポイトツールはクリックで即座に色を取得
-      if (activeTool === "eyedropper") {
-        handleEyedropper(point);
-        return;
-      }
-
-      // ペンツールの処理
-      if (activeTool === "pen") {
-        // 最初の点をクリック/ドラッグしたらパスを閉じる
-        if (penPoints.length > 2) {
-          const firstPoint = penPoints[0];
-          const distance = Math.sqrt(
-            Math.pow(point.x - firstPoint.x, 2) + Math.pow(point.y - firstPoint.y, 2)
-          );
-          if (distance < 10) {
-            // ドラッグの準備（最初の点にハンドルを設定するため）
-            setIsPenDragging(true);
-            setPenDragStart(point);
-            setPendingPenPoint({ x: firstPoint.x, y: firstPoint.y });
-            return;
-          }
-        }
-
-        // ドラッグの準備（新しい点を追加する準備）
-        setIsPenDragging(true);
-        setPenDragStart(point);
-        setPendingPenPoint({ x: point.x, y: point.y });
-        return;
-      }
 
       setIsDragging(true);
 
@@ -747,19 +414,13 @@ export function EditorCanvas() {
         setCurrentStroke([point]);
       }
     },
-    [activeTool, imagePosition, getCanvasPoint, handleEyedropper, penPoints]
+    [activeTool, imagePosition, getCanvasPoint]
   );
 
   const handlePointerMove = useCallback(
     (e: React.MouseEvent | React.TouchEvent) => {
       const point = getCanvasPoint(e);
       if (!point) return;
-
-      // ペンツールのドラッグ処理
-      if (activeTool === "pen" && isPenDragging) {
-        setPenDragStart(point);
-        return;
-      }
 
       if (!isDragging) return;
 
@@ -772,76 +433,10 @@ export function EditorCanvas() {
         setCurrentStroke((prev) => [...prev, point]);
       }
     },
-    [isDragging, activeTool, dragStart, getCanvasPoint, setImagePosition, isPenDragging]
+    [isDragging, activeTool, dragStart, getCanvasPoint, setImagePosition]
   );
 
   const handlePointerUp = useCallback(() => {
-    // ペンツールのドラッグ終了処理
-    if (activeTool === "pen" && isPenDragging && pendingPenPoint) {
-      // 最初の点をクリックしてパスを閉じる場合
-      if (penPoints.length > 2) {
-        const firstPoint = penPoints[0];
-        const distance = Math.sqrt(
-          Math.pow(pendingPenPoint.x - firstPoint.x, 2) +
-          Math.pow(pendingPenPoint.y - firstPoint.y, 2)
-        );
-        if (distance < 10) {
-          // ドラッグしていた場合は最後の点にハンドルを設定
-          if (penDragStart) {
-            const dx = penDragStart.x - pendingPenPoint.x;
-            const dy = penDragStart.y - pendingPenPoint.y;
-            const moved = Math.sqrt(dx * dx + dy * dy) > 2;
-
-            if (moved && penPoints.length > 0) {
-              // 最後の点にハンドルを追加
-              const lastPoint = penPoints[penPoints.length - 1];
-              updatePenPoint(penPoints.length - 1, {
-                ...lastPoint,
-                handleOut: { x: penDragStart.x, y: penDragStart.y }
-              });
-
-              // 最初の点にもハンドルを追加（対称）
-              updatePenPoint(0, {
-                ...firstPoint,
-                handleIn: { x: firstPoint.x - dx, y: firstPoint.y - dy }
-              });
-            }
-          }
-
-          closePenPath();
-          setIsPenDragging(false);
-          setPenDragStart(null);
-          setPendingPenPoint(null);
-          return;
-        }
-      }
-
-      // 新しい点を追加（ドラッグしていた場合はハンドル付き）
-      if (penDragStart) {
-        const dx = penDragStart.x - pendingPenPoint.x;
-        const dy = penDragStart.y - pendingPenPoint.y;
-        const moved = Math.sqrt(dx * dx + dy * dy) > 2;
-
-        if (moved) {
-          // ハンドル付きの点を追加
-          addPenPoint({
-            x: pendingPenPoint.x,
-            y: pendingPenPoint.y,
-            handleOut: { x: penDragStart.x, y: penDragStart.y },
-            handleIn: { x: pendingPenPoint.x - dx, y: pendingPenPoint.y - dy }
-          });
-        } else {
-          // 直線の点を追加
-          addPenPoint({ x: pendingPenPoint.x, y: pendingPenPoint.y });
-        }
-      }
-
-      setIsPenDragging(false);
-      setPenDragStart(null);
-      setPendingPenPoint(null);
-      return;
-    }
-
     if (activeTool === "brush" && currentStroke.length > 0) {
       saveHistory(); // 履歴を保存
       addOverflowStroke(currentStroke);
@@ -860,14 +455,7 @@ export function EditorCanvas() {
     addOverflowStroke,
     applyEraserStroke,
     applyRestoreStroke,
-    saveHistory,
-    isPenDragging,
-    pendingPenPoint,
-    penDragStart,
-    penPoints,
-    addPenPoint,
-    updatePenPoint,
-    closePenPath
+    saveHistory
   ]);
 
   // ホイールでズーム
@@ -902,7 +490,6 @@ export function EditorCanvas() {
   // カーソルスタイルを決定
   const getCursorStyle = () => {
     if (activeTool === "move") return "grab";
-    if (activeTool === "eyedropper") return "crosshair";
     if (activeTool === "eraser") return "crosshair";
     if (activeTool === "restore") return "crosshair";
     return "crosshair";
@@ -936,32 +523,6 @@ export function EditorCanvas() {
         onWheel={handleWheel}
       />
 
-      {/* ペンツールのアクションボタン */}
-      {showPenActions && (
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 p-3 bg-white rounded-lg shadow-lg border border-[var(--neu-border)]">
-          <button
-            className="neu-button neu-button-sm neu-button-primary"
-            onClick={() => applyPenPathMask(true)}
-          >
-            範囲外を削除
-          </button>
-          <button
-            className="neu-button neu-button-sm neu-button-primary"
-            onClick={() => applyPenPathMask(false)}
-          >
-            範囲内を削除
-          </button>
-          <button
-            className="neu-button neu-button-sm"
-            onClick={() => {
-              clearPenPath();
-              setShowPenActions(false);
-            }}
-          >
-            キャンセル
-          </button>
-        </div>
-      )}
     </div>
   );
 }

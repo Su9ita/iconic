@@ -1,5 +1,4 @@
-export type Tool = "move" | "brush" | "eraser" | "eyedropper" | "restore" | "pen";
-export type BgRemovalMethod = "ai" | "none" | "color" | "manual";
+export type Tool = "move" | "brush" | "eraser" | "restore";
 
 /**
  * RGB色
@@ -8,16 +7,6 @@ export interface RGBColor {
   r: number;
   g: number;
   b: number;
-}
-
-/**
- * ペンツールのベジェ曲線点
- */
-export interface PenPoint {
-  x: number;
-  y: number;
-  handleIn?: Position;
-  handleOut?: Position;
 }
 
 export interface Position {
@@ -59,7 +48,7 @@ export interface HistoryEntry {
 export interface EditorState {
   // 画像
   sourceImage: HTMLImageElement | null;
-  processedImageUrl: string | null; // 背景除去済み画像のURL
+  processedImageUrl: string | null; // レイヤー初期化用の画像URL
 
   // レイヤー
   layers: Layer[];
@@ -80,25 +69,8 @@ export interface EditorState {
   // オーバーフローマスク（ブラシで塗ったエリア）- 旧方式、互換性のため残す
   overflowStrokes: Position[][];
 
-  // 背景除去
-  bgRemovalMethod: BgRemovalMethod;
-  removeBgApiKey: string | null;
-  isProcessing: boolean;
-  processingProgress: number;
-  processingMessage: string;
-
-  // 色指定による背景除去
-  selectedColor: RGBColor | null;
-  colorTolerance: number; // 許容範囲 0-100
-
   // UI
   showOriginal: boolean;
-
-  // ペンツール
-  penPoints: PenPoint[];
-  currentPenPoint: PenPoint | null;
-  isPenPathClosed: boolean;
-  isManualMode: boolean;
 
   // クリッピング
   clipRegion: ClipRegion;
@@ -117,16 +89,8 @@ export interface EditorActions {
   setBrushSize: (size: number) => void;
   addOverflowStroke: (stroke: Position[]) => void;
   clearOverflowStrokes: () => void;
-  setBgRemovalMethod: (method: BgRemovalMethod) => void;
-  setRemoveBgApiKey: (key: string | null) => void;
-  setIsProcessing: (processing: boolean) => void;
-  setProcessingProgress: (progress: number, message?: string) => void;
   toggleShowOriginal: () => void;
   reset: () => void;
-
-  // 色指定による背景除去
-  setSelectedColor: (color: RGBColor | null) => void;
-  setColorTolerance: (tolerance: number) => void;
 
   // レイヤー操作
   addLayer: (layer: Layer) => void;
@@ -151,13 +115,6 @@ export interface EditorActions {
   setExportModalOpen: (open: boolean) => void;
   resetClipRegion: () => void;
 
-  // ペンツール操作
-  addPenPoint: (point: PenPoint) => void;
-  updatePenPoint: (index: number, point: PenPoint) => void;
-  closePenPath: () => void;
-  clearPenPath: () => void;
-  setCurrentPenPoint: (point: PenPoint | null) => void;
-  setIsManualMode: (isManual: boolean) => void;
   setRoundness: (roundness: number) => void;
 }
 

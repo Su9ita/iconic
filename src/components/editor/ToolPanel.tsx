@@ -8,26 +8,16 @@ import {
   ArrowUUpLeft,
   ArrowUUpRight,
   ArrowCounterClockwise,
-  Path,
   FrameCorners,
-  SelectionForeground,
 } from "@phosphor-icons/react";
 import { useEditorStore } from "@/stores/editorStore";
 import { getClipMargins, updateClipMargin, ClipMarginEdge } from "@/lib/clipRegion";
-import { createSquirclePath } from "@/lib/squircleMask";
-import {
-  WORKSPACE_SIZE,
-  SQUIRCLE_OFFSET,
-  ICON_PADDING,
-  SQUIRCLE_SIZE,
-} from "@/lib/constants";
 
 export function ToolPanel() {
   const {
     activeTool,
     brushSize,
     layers,
-    isManualMode,
     clipRegion,
     roundness,
     setActiveTool,
@@ -35,13 +25,10 @@ export function ToolPanel() {
     clearOverflowStrokes,
     setClipRegion,
     setRoundness,
-    updateLayerEraserMask,
-    saveHistory,
     undo,
     redo,
     canUndo,
     canRedo,
-    clearPenPath,
   } = useEditorStore();
   const clipMargins = getClipMargins(clipRegion);
   const marginFields: { edge: ClipMarginEdge; label: string }[] = [
@@ -53,39 +40,6 @@ export function ToolPanel() {
 
   const handleMarginChange = (edge: ClipMarginEdge, value: number) => {
     setClipRegion(updateClipMargin(clipRegion, edge, value));
-  };
-
-  const handleClipBaseOutsideRound = () => {
-    const baseLayer = layers.find((layer) => layer.id === "base");
-    if (!baseLayer) return;
-
-    saveHistory();
-
-    const maskCanvas = document.createElement("canvas");
-    maskCanvas.width = WORKSPACE_SIZE;
-    maskCanvas.height = WORKSPACE_SIZE;
-    const maskCtx = maskCanvas.getContext("2d");
-    if (!maskCtx) return;
-
-    if (baseLayer.eraserMask) {
-      maskCtx.putImageData(baseLayer.eraserMask, 0, 0);
-    }
-
-    const outsideCanvas = document.createElement("canvas");
-    outsideCanvas.width = WORKSPACE_SIZE;
-    outsideCanvas.height = WORKSPACE_SIZE;
-    const outsideCtx = outsideCanvas.getContext("2d");
-    if (!outsideCtx) return;
-
-    outsideCtx.fillStyle = "#ffffff";
-    outsideCtx.fillRect(0, 0, WORKSPACE_SIZE, WORKSPACE_SIZE);
-    outsideCtx.globalCompositeOperation = "destination-out";
-    outsideCtx.translate(SQUIRCLE_OFFSET + ICON_PADDING, SQUIRCLE_OFFSET + ICON_PADDING);
-    createSquirclePath(outsideCtx, SQUIRCLE_SIZE, roundness);
-    outsideCtx.fill();
-
-    maskCtx.drawImage(outsideCanvas, 0, 0);
-    updateLayerEraserMask("base", maskCtx.getImageData(0, 0, WORKSPACE_SIZE, WORKSPACE_SIZE));
   };
 
   return (
@@ -124,15 +78,6 @@ export function ToolPanel() {
             </button>
           </>
         )}
-        {isManualMode && layers.length > 0 && (
-          <button
-            className={`neu-tool ${activeTool === "pen" ? "active" : ""}`}
-            onClick={() => setActiveTool("pen")}
-            title="ペンツール（範囲選択）"
-          >
-            <Path size={24} weight={activeTool === "pen" ? "fill" : "regular"} />
-          </button>
-        )}
         <button
           className={`neu-tool ${activeTool === "brush" ? "active" : ""}`}
           onClick={() => setActiveTool("brush")}
@@ -144,9 +89,8 @@ export function ToolPanel() {
           className="neu-tool"
           onClick={() => {
             clearOverflowStrokes();
-            clearPenPath();
           }}
-          title="ブラシ・パスをクリア"
+          title="ブラシをクリア"
         >
           <Trash size={24} />
         </button>
@@ -174,17 +118,6 @@ export function ToolPanel() {
             <span className="text-xs ml-1">やり直す</span>
           </button>
         </div>
-      )}
-
-      {layers.some((layer) => layer.id === "base") && (
-        <button
-          className="neu-button neu-button-sm flex items-center justify-center gap-2"
-          onClick={handleClipBaseOutsideRound}
-          title="ベースレイヤーだけ角丸の外側を削除"
-        >
-          <SelectionForeground size={18} />
-          ベースを角丸で切り抜く
-        </button>
       )}
 
       {/* ブラシ/消しゴム/復元ブラシサイズ */}

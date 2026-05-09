@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   DownloadSimple,
   ImageSquare,
-  MagicWand,
   SlidersHorizontal,
 } from "@phosphor-icons/react";
 import { useEditorStore } from "@/stores/editorStore";
@@ -14,7 +13,6 @@ import {
   EditorCanvas,
   ToolPanel,
   ScaleSlider,
-  BackgroundRemovalPanel,
   ExportPanel,
   LayerPanel,
   BalancePreview,
@@ -22,17 +20,15 @@ import {
 
 const steps = [
   { label: "画像", icon: ImageSquare },
-  { label: "背景", icon: MagicWand },
   { label: "調整", icon: SlidersHorizontal },
   { label: "保存", icon: DownloadSimple },
 ];
 
 export default function Home() {
   const sourceImage = useEditorStore((s: EditorStore) => s.sourceImage);
-  const processedImageUrl = useEditorStore((s: EditorStore) => s.processedImageUrl);
   const layers = useEditorStore((s: EditorStore) => s.layers);
   const reset = useEditorStore((s: EditorStore) => s.reset);
-  const activeStep = !sourceImage ? 0 : !processedImageUrl ? 1 : layers.length > 0 ? 2 : 1;
+  const activeStep = !sourceImage ? 0 : layers.length > 0 ? 1 : 0;
 
   return (
     <main className="min-h-screen px-4 py-5 md:px-8 md:py-7">
@@ -83,7 +79,7 @@ export default function Home() {
               <p className="eyebrow">ICON EXPORTER</p>
               <h2>画像からすぐにアプリアイコンを作成</h2>
               <p>
-                背景除去、角丸マスク、PNG/ICO 書き出しまでをブラウザ上で完結できます。
+                角丸マスク、レイヤー調整、PNG/ICO 書き出しまでをブラウザ上で完結できます。
               </p>
             </div>
             <ImageUploader />
@@ -109,7 +105,6 @@ export default function Home() {
               <div className="hidden lg:block">
                 <ToolPanel />
               </div>
-              <BackgroundRemovalPanel />
               <LayerPanel />
               <BalancePreview />
               <ExportPanel />
@@ -117,20 +112,7 @@ export default function Home() {
           </section>
         )}
 
-        <footer className="app-footer">
-          <p className="text-xs text-[var(--neu-text-muted)]">
-            背景除去には
-            <a
-              href="https://github.com/imgly/background-removal-js"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[var(--neu-accent)] hover:underline mx-1"
-            >
-              @imgly/background-removal
-            </a>
-            を使用しています
-          </p>
-        </footer>
+        <footer className="app-footer" />
       </div>
     </main>
   );

@@ -52,7 +52,6 @@ export function ExportModal() {
     brushSize,
     showOriginal,
     layers,
-    isManualMode,
     clipRegion,
     isExportModalOpen,
     roundness,
@@ -247,7 +246,6 @@ export function ExportModal() {
         brushSize,
         showOriginal,
         layers,
-        isManualMode,
         clipRegion,
         roundness,
       });
@@ -279,7 +277,6 @@ export function ExportModal() {
     brushSize,
     showOriginal,
     layers,
-    isManualMode,
     clipRegion,
     roundness,
     isExportModalOpen,
@@ -503,7 +500,6 @@ export function ExportModal() {
           brushSize,
           showOriginal,
           layers,
-          isManualMode,
           clipRegion,
           roundness,
         });
@@ -535,7 +531,6 @@ export function ExportModal() {
       brushSize,
       showOriginal,
       layers,
-      isManualMode,
       clipRegion,
       roundness,
     ]
